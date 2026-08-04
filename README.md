@@ -80,7 +80,7 @@ dist/FastRes.exe
 
 ## Author
 
-**Bêu** · `@beu1411`
+**Beu** · `@beu1411`
 
 ---
 
