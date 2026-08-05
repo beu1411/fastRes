@@ -160,7 +160,3 @@ FastRes/
 
 ---
 
-## License
-
-Personal / educational use. Feel free to modify it for your own setup.  
-Not affiliated with Riot Games or VNG.
