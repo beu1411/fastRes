@@ -10,11 +10,14 @@ Built with Python + Tkinter. Supports **English / Vietnamese** and **Dark / Ligh
 
 - Quick switch between default presets and custom resolutions
 - Create and delete custom resolutions
+- **Disable / Enable monitors** (Device Manager) for true stretched — state is remembered
+- Guide popup when a resolution is missing on the GPU (NVIDIA custom resolution + scaling steps)
+- **System tray**: close (X) hides to tray instead of quitting; right-click → Show / Quit
 - **Mods tab**: auto-find Valorant folder, inject Mature Content (Blood), launch game
 - English / Vietnamese interface
 - Dark / Light theme
-- Built-in FAQ
-- Custom window icon (`beu.ico`)
+- Built-in FAQ + welcome tip
+- Custom window / tray icon (`beu.ico`)
 - Works as a Python script or standalone `.exe`
 
 ### Default resolution presets
@@ -28,17 +31,27 @@ Built with Python + Tkinter. Supports **English / Vietnamese** and **Dark / Ligh
 
 ---
 
+## What's new in v1.2.0
+
+- Smoother app startup (no UI flicker)
+- Disable / Enable all monitors from the Resolutions tab
+- Minimize to system tray on window close (requires `pystray`)
+- NVIDIA custom-resolution guide when Apply fails (including **Adjust desktop size and position** → Full-screen + GPU scaling)
+- Safer NVIDIA Control Panel launcher (no error dialog when `nvcplui.exe` is missing)
+
+---
+
 ## Requirements
 
 - Windows 10 / 11
 - Python 3.10+ (only if running from source)
-- Pillow, psutil
+- Pillow, psutil, pystray
 
 ```bash
 pip install -r requirements.txt
 ```
 
-> Changing resolution may require **Run as Administrator**.  
+> Changing resolution and controlling monitors require **Run as Administrator**.  
 > Custom resolutions must already exist in NVIDIA / AMD / Intel Control Panel.
 
 ---
@@ -51,7 +64,7 @@ pip install -r requirements.txt
 4. Run `FastRes.exe` **as Administrator**
 
 ```text
-FastRes-v1.1.0/
+FastRes-v1.2.0/
 ├── FastRes.exe
 └── blood/
     └── README.txt
@@ -62,6 +75,8 @@ FastRes-v1.1.0/
 ## Run from source
 
 ```bash
+cd fastRes-1.2.0
+pip install -r requirements.txt
 py main.py
 ```
 
@@ -124,6 +139,15 @@ Without blood files, FastRes still works fully for **resolution switching** and 
 
 - Switching too early can cause black bars — switch back to native and repeat from step 2  
 - Do not open **Graphics Quality** while on a stretched resolution  
+- For **true stretched**, disable extra monitors (Device Manager) via the buttons on the Resolutions tab  
+
+### Create custom resolution (NVIDIA)
+
+1. Open NVIDIA Control Panel  
+2. Under **Display** → Change resolution → Customize → Create custom resolution  
+3. Enter width, height and refresh rate (do not exceed your display max) → Test → Yes → OK  
+4. Under **Display** → Adjust desktop size and position → Scaling: **Full-screen**, Perform scaling on: **GPU** → Apply  
+5. Return to FastRes and Apply again  
 
 ---
 
@@ -143,7 +167,7 @@ Without blood files, FastRes still works fully for **resolution switching** and 
 FastRes/
 ├── main.py              # Entry (admin check)
 ├── valorant.py          # Path detect, blood inject, launch
-├── resolution.py        # ChangeDisplaySettings
+├── resolution.py        # ChangeDisplaySettings + monitors + NVIDIA open
 ├── config.py / i18n.py  # Config + translations
 ├── ui/                  # Tkinter pages
 ├── assets/              # Icons
@@ -159,3 +183,8 @@ FastRes/
 **Bêu** · [TikTok @beuu1411](https://www.tiktok.com/@beuu1411) · [GitHub @beu1411](https://github.com/beu1411)
 
 ---
+
+## License
+
+Personal / educational use. Feel free to modify it for your own setup.  
+Not affiliated with Riot Games or VNG.

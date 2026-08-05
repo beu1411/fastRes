@@ -1,16 +1,16 @@
 import tkinter as tk
 from tkinter import messagebox
 
-from config import save_customs
+from config import save_config, save_customs
 from constants import PRESETS
-from resolution import set_resolution
+from resolution import open_nvidia_control_panel, set_monitors_state, set_resolution
 
 
 class ResolutionsMixin:
     def _page_resolutions(self):
         C, T = self.C, self.T
         header = tk.Frame(self.main, bg=C["BG"])
-        header.pack(fill="x", padx=24, pady=(20, 12))
+        header.pack(fill="x", padx=24, pady=(20, 8))
         tk.Label(header, text=T["header_res"], font=("Segoe UI", 14, "bold"),
                  fg=C["TEXT"], bg=C["BG"]).pack(side="left")
         tk.Button(header, text=T["btn_create"], font=("Segoe UI", 9, "bold"),
@@ -18,6 +18,38 @@ class ResolutionsMixin:
                   relief="flat", bd=0, padx=14, pady=6, cursor="hand2",
                   highlightthickness=0, takefocus=0,
                   command=self.create_dialog).pack(side="right")
+
+        # Tip + Disable / Enable monitors
+        tip_row = tk.Frame(self.main, bg=C["BG"])
+        tip_row.pack(fill="x", padx=24, pady=(0, 10))
+
+        tk.Label(
+            tip_row, text=T.get("mon_tip", ""), font=("Segoe UI", 9),
+            fg=C["TEXT_DIM"], bg=C["BG"], wraplength=420, justify="left",
+        ).pack(side="left", anchor="w")
+
+        btns = tk.Frame(tip_row, bg=C["BG"])
+        btns.pack(side="right")
+
+        mon_off = bool(self.cfg.get("monitors_disabled", False))
+        dis_bg = C["BORDER"] if mon_off else C["ERROR"]
+        dis_fg = C["TEXT_DIM"] if mon_off else "white"
+        en_bg = C["SUCCESS"] if mon_off else C["BORDER"]
+        en_fg = "white" if mon_off else C["TEXT_DIM"]
+
+        tk.Button(
+            btns, text=T.get("btn_disable_mon", "Disable"), font=("Segoe UI", 8, "bold"),
+            bg=dis_bg, fg=dis_fg, relief="flat", bd=0, padx=10, pady=5,
+            cursor="hand2", highlightthickness=0, takefocus=0,
+            command=lambda: self._toggle_monitors(True),
+        ).pack(side="left", padx=(0, 6))
+
+        tk.Button(
+            btns, text=T.get("btn_enable_mon", "Enable"), font=("Segoe UI", 8, "bold"),
+            bg=en_bg, fg=en_fg, relief="flat", bd=0, padx=10, pady=5,
+            cursor="hand2", highlightthickness=0, takefocus=0,
+            command=lambda: self._toggle_monitors(False),
+        ).pack(side="left")
 
         box = tk.Frame(self.main, bg=C["BG"])
         box.pack(fill="both", expand=True, padx=24, pady=(0, 10))
@@ -167,6 +199,77 @@ class ResolutionsMixin:
             self.status_lbl.config(fg=self.C["ERROR"])
             self.status.set(msg)
             self.show_toast(msg, False)
+            self._show_res_guide()
+
+    def _toggle_monitors(self, disable):
+        T = self.T
+        ok, reason = set_monitors_state(disable=disable)
+        if not ok:
+            if reason == "admin":
+                messagebox.showwarning("Admin", T.get("mon_need_admin", "Need admin"))
+            else:
+                messagebox.showerror("Error", T.get("mon_fail", "Failed"))
+            return
+        self.cfg["monitors_disabled"] = bool(disable)
+        save_config(self.cfg)
+        msg = T.get("mon_disabled_ok" if disable else "mon_enabled_ok", "OK")
+        self.show_toast(msg, True)
+        if self.current_page == "resolutions":
+            self._show_page("resolutions")
+
+    def _show_res_guide(self):
+        C, T = self.C, self.T
+        dlg = tk.Toplevel(self)
+        dlg.title(T.get("guide_title", "Guide"))
+        dlg.configure(bg=C["BG"])
+        dlg.resizable(False, False)
+        dlg.transient(self)
+        dlg.grab_set()
+        self._set_toplevel_icon(dlg)
+        dw, dh = 460, 400
+        dlg.geometry(f"{dw}x{dh}")
+        dlg.update_idletasks()
+        x = self.winfo_x() + (self.winfo_width() - dw) // 2
+        y = self.winfo_y() + (self.winfo_height() - dh) // 2
+        dlg.geometry(f"+{x}+{y}")
+
+        tk.Label(dlg, text=T.get("guide_title", ""), font=("Segoe UI", 13, "bold"),
+                 fg=C["TEXT"], bg=C["BG"]).pack(anchor="w", padx=22, pady=(18, 8))
+        tk.Label(dlg, text=T.get("guide_intro", ""), font=("Segoe UI", 10),
+                 fg=C["TEXT_DIM"], bg=C["BG"], wraplength=410, justify="left").pack(
+            anchor="w", padx=22, pady=(0, 12))
+
+        for key in ("guide_1", "guide_2", "guide_3", "guide_4", "guide_5"):
+            tk.Label(dlg, text=T.get(key, ""), font=("Segoe UI", 10),
+                     fg=C["TEXT"], bg=C["BG"], wraplength=410, justify="left").pack(
+                anchor="w", padx=22, pady=3)
+
+        btns = tk.Frame(dlg, bg=C["BG"])
+        btns.pack(pady=(18, 16))
+
+        def open_ncp():
+            if not open_nvidia_control_panel():
+                messagebox.showinfo(
+                    "NVIDIA",
+                    "Không tìm thấy NVIDIA Control Panel trên máy.\n\n"
+                    "• Cài từ Microsoft Store: tìm \"NVIDIA Control Panel\"\n"
+                    "• Hoặc cài GeForce Experience / driver NVIDIA đầy đủ\n"
+                    "• Sau đó mở thủ công và làm theo các bước trong hướng dẫn.",
+                    parent=dlg,
+                )
+
+        tk.Button(
+            btns, text=T.get("guide_open_ncp", "Open NVIDIA"), font=("Segoe UI", 9, "bold"),
+            bg=C["ACCENT"], fg="white", activebackground=C["ACCENT_H"],
+            relief="flat", bd=0, padx=14, pady=7, cursor="hand2",
+            highlightthickness=0, takefocus=0, command=open_ncp,
+        ).pack(side="left", padx=6)
+        tk.Button(
+            btns, text=T.get("btn_close", "Close"), font=("Segoe UI", 9),
+            bg=C["CARD"], fg=C["TEXT"], relief="flat", bd=0,
+            padx=14, pady=7, cursor="hand2", highlightthickness=0, takefocus=0,
+            command=dlg.destroy,
+        ).pack(side="left", padx=6)
 
     def delete(self, w, h):
         T = self.T

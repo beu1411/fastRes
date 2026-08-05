@@ -1,4 +1,5 @@
 import ctypes
+import threading
 import tkinter as tk
 
 from config import load_config, load_customs, save_config
@@ -12,10 +13,19 @@ from ui.settings import SettingsMixin
 from ui.info import InfoMixin
 from ui.dialogs import DialogsMixin
 
+try:
+    import pystray
+    from PIL import Image, ImageDraw
+    HAS_TRAY = True
+except ImportError:
+    HAS_TRAY = False
+
 
 class App(tk.Tk, SidebarMixin, ModsMixin, ResolutionsMixin, SettingsMixin, InfoMixin, DialogsMixin):
     def __init__(self):
         super().__init__()
+        # Ẩn khi build UI → tránh giật lúc mở app
+        self.withdraw()
 
         try:
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("beu.fastres.app.1.0")
@@ -49,6 +59,7 @@ class App(tk.Tk, SidebarMixin, ModsMixin, ResolutionsMixin, SettingsMixin, InfoM
         self.nav_labels = {}
         self.icons = {}
         self.icon_refs = []
+        self.tray_icon = None
 
         self.sidebar_collapsed = False
         self.sidebar_width_expanded = 210
@@ -58,18 +69,75 @@ class App(tk.Tk, SidebarMixin, ModsMixin, ResolutionsMixin, SettingsMixin, InfoM
         self._load_icons()
         self._build()
         self.bind_all("<MouseWheel>", self._wheel)
-        if not self.cfg.get("hide_welcome", False):
-            self.after(200, self._show_welcome)
-
-        # Emergency cleanup on close
         self.protocol("WM_DELETE_WINDOW", self._on_close)
 
+        # Hiện sau khi UI sẵn sàng
+        self.update_idletasks()
+        self.deiconify()
+        self.lift()
+        self.focus_force()
+
+        if not self.cfg.get("hide_welcome", False):
+            self.after(300, self._show_welcome)
+
     def _on_close(self):
+        """Ẩn vào system tray; cleanup khi thoát hẳn."""
+        if HAS_TRAY:
+            self.withdraw()
+            self._ensure_tray()
+        else:
+            self._quit_app()
+
+    def _ensure_tray(self):
+        if not HAS_TRAY or self.tray_icon is not None:
+            return
+
+        def _make_icon():
+            # Dùng icon app (beu.ico) thay vì vẽ tạm
+            try:
+                from config import ICON_PATH, BASE_DIR
+                ico = ICON_PATH if ICON_PATH.exists() else BASE_DIR / "assets" / "beu.ico"
+                if ico.exists():
+                    img = Image.open(ico).convert("RGBA")
+                    img = img.resize((64, 64), Image.Resampling.LANCZOS)
+                    return img
+            except Exception:
+                pass
+            img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+            d = ImageDraw.Draw(img)
+            d.ellipse((4, 4, 60, 60), fill=(59, 130, 246, 255))
+            d.text((20, 16), "F", fill="white")
+            return img
+
+        def on_show(icon, item):
+            self.after(0, self._restore_from_tray)
+
+        def on_quit(icon, item):
+            self.after(0, self._quit_app)
+
+        menu = pystray.Menu(
+            pystray.MenuItem(self.T.get("tray_show", "Show FastRes"), on_show, default=True),
+            pystray.MenuItem(self.T.get("tray_quit", "Quit"), on_quit),
+        )
+        self.tray_icon = pystray.Icon("FastRes", _make_icon(), "FastRes", menu)
+        threading.Thread(target=self.tray_icon.run, daemon=True).start()
+
+    def _restore_from_tray(self):
+        self.deiconify()
+        self.lift()
+        self.focus_force()
+
+    def _quit_app(self):
         try:
             from valorant import emergency_cleanup, get_paks_dir
             path = self.cfg.get("game_path", "")
             paks = get_paks_dir(path) if path else None
             emergency_cleanup(paks)
+        except Exception:
+            pass
+        try:
+            if self.tray_icon is not None:
+                self.tray_icon.stop()
         except Exception:
             pass
         self.destroy()

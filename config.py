@@ -23,6 +23,7 @@ DEFAULT_CONFIG = {
     "hide_welcome": False,
     "game_path": "",
     "enable_blood": True,
+    "monitors_disabled": False,
 }
 
 

@@ -11,7 +11,7 @@ a = Analysis(
         ('assets', 'assets'),
         ('blood', 'blood'),
     ],
-    hiddenimports=['PIL._tkinter_finder', 'psutil'],
+    hiddenimports=['PIL._tkinter_finder', 'psutil', 'pystray'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
