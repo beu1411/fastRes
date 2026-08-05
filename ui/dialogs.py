@@ -142,6 +142,8 @@ class DialogsMixin:
         win.configure(bg=C["BG"])
         win.resizable(True, True)
         win.minsize(420, 480)
+        win.transient(self)
+        win.grab_set()
         self._set_toplevel_icon(win)
         fw, fh = 480, 580
         win.geometry(f"{fw}x{fh}")
@@ -151,6 +153,10 @@ class DialogsMixin:
         win.geometry(f"+{x}+{y}")
 
         def close():
+            try:
+                win.grab_release()
+            except Exception:
+                pass
             self.faq_win = None
             win.destroy()
         win.protocol("WM_DELETE_WINDOW", close)

@@ -17,7 +17,13 @@ CONFIG_FILE = DATA_DIR / "config.json"
 ASSETS = BUNDLE_DIR / "assets"
 ICON_PATH = ASSETS / "beu.ico"
 
-DEFAULT_CONFIG = {"language": "en", "theme": "dark", "hide_welcome": False}
+DEFAULT_CONFIG = {
+    "language": "en",
+    "theme": "dark",
+    "hide_welcome": False,
+    "game_path": "",
+    "enable_blood": True,
+}
 
 
 def load_config():

@@ -7,8 +7,11 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('assets', 'assets')],
-    hiddenimports=['PIL._tkinter_finder'],
+    datas=[
+        ('assets', 'assets'),
+        ('blood', 'blood'),
+    ],
+    hiddenimports=['PIL._tkinter_finder', 'psutil'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

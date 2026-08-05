@@ -54,6 +54,7 @@ class SidebarMixin:
         self.nav_container = tk.Frame(self.side, bg=C["SIDEBAR"])
         self.nav_container.pack(fill="both", expand=True)
 
+        self._nav_item(self.nav_container, "mods", T["nav_mods"], "mods")
         self._nav_item(self.nav_container, "res", T["nav_res"], "resolutions")
         self._nav_item(self.nav_container, "setting", T["nav_settings"], "settings")
         self._nav_item(self.nav_container, "faq", T["nav_faq"], "faq", cmd=self.show_faq)

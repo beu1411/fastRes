@@ -1,4 +1,4 @@
-CURRENT_VERSION = "1.0.1"
+CURRENT_VERSION = "1.1.0"
 
 THEMES = {
     "dark": {

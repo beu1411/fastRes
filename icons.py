@@ -55,6 +55,8 @@ def load_nav_icons(theme_name):
         "translate": "translate_white.png",
         "theme": "theme.png",
         "tiktok": "tiktok_white.png",
+        "search": "search_white.png",
+        "mods": "tool_white.png",
     }
     is_dark = theme_name == "dark"
     icons = {}

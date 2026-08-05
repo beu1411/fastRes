@@ -6,13 +6,14 @@ from constants import THEMES
 from i18n import LANG
 from icons import load_nav_icons, set_toplevel_icon, set_window_icon
 from ui.sidebar import SidebarMixin
+from ui.mods import ModsMixin
 from ui.resolutions import ResolutionsMixin
 from ui.settings import SettingsMixin
 from ui.info import InfoMixin
 from ui.dialogs import DialogsMixin
 
 
-class App(tk.Tk, SidebarMixin, ResolutionsMixin, SettingsMixin, InfoMixin, DialogsMixin):
+class App(tk.Tk, SidebarMixin, ModsMixin, ResolutionsMixin, SettingsMixin, InfoMixin, DialogsMixin):
     def __init__(self):
         super().__init__()
 
@@ -44,7 +45,7 @@ class App(tk.Tk, SidebarMixin, ResolutionsMixin, SettingsMixin, InfoMixin, Dialo
 
         self.customs = load_customs()
         self.faq_win = None
-        self.current_page = "resolutions"
+        self.current_page = "mods"
         self.nav_labels = {}
         self.icons = {}
         self.icon_refs = []
@@ -59,6 +60,19 @@ class App(tk.Tk, SidebarMixin, ResolutionsMixin, SettingsMixin, InfoMixin, Dialo
         self.bind_all("<MouseWheel>", self._wheel)
         if not self.cfg.get("hide_welcome", False):
             self.after(200, self._show_welcome)
+
+        # Emergency cleanup on close
+        self.protocol("WM_DELETE_WINDOW", self._on_close)
+
+    def _on_close(self):
+        try:
+            from valorant import emergency_cleanup, get_paks_dir
+            path = self.cfg.get("game_path", "")
+            paks = get_paks_dir(path) if path else None
+            emergency_cleanup(paks)
+        except Exception:
+            pass
+        self.destroy()
 
     def _set_toplevel_icon(self, win):
         set_toplevel_icon(win, getattr(self, "_window_icon_photo", None))
@@ -121,7 +135,9 @@ class App(tk.Tk, SidebarMixin, ResolutionsMixin, SettingsMixin, InfoMixin, Dialo
     def _show_page(self, page):
         for w in self.main.winfo_children():
             w.destroy()
-        if page == "resolutions":
+        if page == "mods":
+            self._page_mods()
+        elif page == "resolutions":
             self._page_resolutions()
         elif page == "settings":
             self._page_settings()

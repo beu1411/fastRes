@@ -29,6 +29,9 @@ class InfoMixin:
                  fg=C["TEXT_DIM"], bg=C["CARD"]).pack(anchor="w", padx=20, pady=(0, 4))
         tk.Label(card, text=T["info_desc"], font=("Segoe UI", 10),
                  fg=C["TEXT"], bg=C["CARD"], wraplength=480, justify="left").pack(
+            anchor="w", padx=20, pady=(0, 6))
+        tk.Label(card, text=T["info_feature"], font=("Segoe UI", 10),
+                 fg=C["TEXT"], bg=C["CARD"], wraplength=480, justify="left").pack(
             anchor="w", padx=20, pady=(0, 12))
 
         tk.Frame(card, bg=C["BORDER"], height=1).pack(fill="x", padx=20, pady=(4, 12))
